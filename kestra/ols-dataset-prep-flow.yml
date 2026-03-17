@@ -1,9 +1,9 @@
 id: ols-dataset-prep
 namespace: ols.data
 description: |
-  OLS Dataset Preparation Pipeline
+  OLS Dataset Preparation Pipeline — production orchestration for the OLS AI Lab data stack
   Fetches HuggingFace datasets, converts to snappy parquet,
-  optionally augments with LLMs, and delivers to HF Hub.
+  optionally augments with LLMs, and delivers clean datasets for downstream fine-tuning workflows.
   Runs all pending datasets unless a specific dataset_id is provided.
 
 inputs:

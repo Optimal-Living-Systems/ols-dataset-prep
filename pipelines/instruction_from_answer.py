@@ -1,20 +1,20 @@
 """
-Pipeline Example — Instruction from Answer (Recipe 1)
+Pipeline Example — Instruction from Answer
 
-Demonstrates how to use ols-dataset-prep to produce a dataset
-for Unsloth Studio's "Instruction from Answer" recipe.
+Demonstrates how to use ols-dataset-prep to produce instruction/response
+training data for downstream fine-tuning workflows.
 
-What this recipe does:
+What this target does:
   Given a seed column of existing answers/responses, generate matching
   instructions so the model learns to follow that style of request.
   Useful for any dataset where you have good responses but no instructions.
 
-Datasets that work well with this recipe:
+Datasets that work well with this target:
   - allenai/prosocial-dialog      (context + response columns)
   - allenai/social_bias_frames    (post + framing columns)
   - Any Q&A dataset with answer columns
 
-Target in Unsloth Studio: "Instruction from Answer" recipe block.
+Runtime target label: `instruction_from_answer`
 
 Usage:
   python -m pipelines.instruction_from_answer

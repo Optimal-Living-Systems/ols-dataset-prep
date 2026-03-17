@@ -1,19 +1,19 @@
 """
-Pipeline Example — Text to Python (Recipe 4)
+Pipeline Example — Text to Python
 
-Demonstrates how to use ols-dataset-prep to produce a dataset
-for Unsloth Studio's "Text to Python" recipe.
+Demonstrates how to use ols-dataset-prep to produce text-to-code training
+data for downstream fine-tuning workflows.
 
-What this recipe does:
+What this target does:
   Trains a model to generate Python code from natural language instructions.
   Useful for code-generation fine-tuning on domain-specific tasks.
 
-Datasets that work well with this recipe:
+Datasets that work well with this target:
   - iamtarun/python_code_instructions_18k_alpaca  (instruction + input + output)
   - flytech/python-codes-25k
   - any dataset with (instruction, code) pairs in Alpaca format
 
-Target in Unsloth Studio: "Text to Python" recipe block.
+Runtime target label: `text_to_python`
 
 Usage:
   python -m pipelines.text_to_python

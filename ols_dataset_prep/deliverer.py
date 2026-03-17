@@ -2,8 +2,8 @@
 Stage 5 — Deliver
 
 Saves the processed dataset as snappy-compressed parquet locally,
-then pushes to HuggingFace Hub. Always snappy — never zstd, never gzip.
-That is the entire reason this pipeline exists.
+then pushes to HuggingFace Hub. Uses snappy for broad downstream
+compatibility across fine-tuning and data-processing tools.
 
 Also generates a dataset card (README) for the HF Hub repo with OLS
 attribution, source dataset credit, and CC-BY-4.0 license.
@@ -44,7 +44,7 @@ def deliver_dataset(
         local_subdir: Subdirectory under OUTPUT_BASE_DIR (e.g. "01-instruction-from-answer").
         hf_repo: Source HF repo for attribution in dataset card.
         augmentation: Augmentation type applied (for card and manifest).
-        recipe_target: Unsloth recipe this feeds.
+        recipe_target: Downstream fine-tuning target this dataset feeds.
         ols_project: OLS project this belongs to.
         hf_token: HF token. Reads HF_TOKEN env var if None.
         push_to_hub: Whether to push to HF Hub (set False for local-only runs).
@@ -141,7 +141,7 @@ Processed by the [OLS Dataset Preparation Pipeline](https://github.com/Optimal-L
 | Source | [{hf_repo}](https://huggingface.co/datasets/{hf_repo}) |
 | Rows | {rows} |
 | Augmentation | {augmentation} |
-| Recipe Target | {recipe_target} |
+| Fine-Tuning Target | {recipe_target} |
 | OLS Project | {ols_project} |
 | Processed | {processed_at[:10]} |
 | License | CC-BY-4.0 |

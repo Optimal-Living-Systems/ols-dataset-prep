@@ -1,19 +1,19 @@
 """
-Pipeline Example — Text to SQL (Recipe 5)
+Pipeline Example — Text to SQL
 
-Demonstrates how to use ols-dataset-prep to produce a dataset
-for Unsloth Studio's "Text to SQL" recipe.
+Demonstrates how to use ols-dataset-prep to produce text-to-SQL training
+data for downstream fine-tuning workflows.
 
-What this recipe does:
+What this target does:
   Trains a model to translate natural language questions into SQL queries
   given a database schema context.
 
-Datasets that work well with this recipe:
+Datasets that work well with this target:
   - b-mc2/sql-create-context   (question + context + answer columns)
   - gretelai/synthetic_text_to_sql
   - any dataset with (question, schema, sql) structure
 
-Target in Unsloth Studio: "Text to SQL" recipe block.
+Runtime target label: `text_to_sql`
 
 Usage:
   python -m pipelines.text_to_sql

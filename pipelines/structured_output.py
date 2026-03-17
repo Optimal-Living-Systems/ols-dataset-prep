@@ -1,19 +1,19 @@
 """
-Pipeline Example — Structured Output (Recipe 6)
+Pipeline Example — Structured Output
 
-Demonstrates how to use ols-dataset-prep to produce a dataset
-for Unsloth Studio's "Structured Outputs (Jinja)" recipe.
+Demonstrates how to use ols-dataset-prep to produce structured-output
+training data for downstream fine-tuning workflows.
 
-What this recipe does:
+What this target does:
   Trains a model to produce JSON-formatted responses following a schema.
   Useful when you need the model to return structured data (dicts, lists)
   rather than free-form text.
 
-Datasets that work well with this recipe:
+Datasets that work well with this target:
   - demelin/moral_stories     (scenario components as structured fields)
   - any dataset with multiple structured columns that map to a JSON schema
 
-Target in Unsloth Studio: "Structured Outputs (Jinja)" recipe block.
+Runtime target label: `structured_outputs_jinja`
 
 Usage:
   python -m pipelines.structured_output

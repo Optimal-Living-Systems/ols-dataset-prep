@@ -2,54 +2,67 @@
 
 A production-grade dataset preparation pipeline for ML fine-tuning.
 
-Fetches any HuggingFace dataset, resolves common compatibility issues automatically,
-augments with LLMs, validates quality, and delivers clean snappy-compressed parquet
-ready for any fine-tuning workflow.
+Fetches any HuggingFace dataset, resolves common compatibility issues
+automatically, augments with LLMs, validates quality, and delivers clean
+snappy-compressed parquet ready for any fine-tuning workflow.
 
-Built for orchestration with Kestra. Works standalone from the command line.
+Built for orchestration with Kestra as part of the Optimal Living Systems AI
+Lab stack. Works standalone from the command line.
+
+---
+
+## What It Does
+
+- Fetches datasets from HuggingFace, including multi-config, gated/private,
+  large, zstd-compressed, and legacy-script repositories
+- Filters columns and rows deterministically
+- Optionally augments rows with LLM pipelines
+- Validates schema, row counts, structured-output integrity, and basic PII
+  signals
+- Delivers clean parquet locally and/or to HuggingFace Hub with provenance in
+  `manifest.json`
 
 ---
 
 ## Why This Exists
 
-Many HuggingFace datasets cannot be loaded directly by fine-tuning tools due to two
-common compatibility issues that affect the entire ecosystem:
+HuggingFace datasets are not packaged consistently across the ecosystem.
+Production fine-tuning and research pipelines regularly run into:
 
-**Issue 1 — zstd compression**
-HuggingFace is adopting zstd as its default compression format. Many tools read
-parquet files directly and cannot handle it.
-```
-Error: "seed inspect failed: Compression type zstd not supported"
-```
+- zstd-compressed parquet that some downstream tooling does not handle cleanly
+- legacy `.py` loading scripts deprecated by newer `datasets` releases
+- repositories that require direct file loading or external data sources
 
-**Issue 2 — Legacy `.py` loading scripts**
-`datasets >= 4.5.0` deprecated Python loading scripts. Datasets that still ship
-one throw:
-```
-Error: "Dataset scripts are no longer supported, but found [name].py"
-```
-
-This pipeline solves both by routing every dataset through `load_dataset()`,
-which handles both transparently, then saves as snappy parquet — compatible
-with any ML training pipeline.
+This pipeline normalizes those cases by routing datasets through
+`datasets.load_dataset()` and compatible fallback loaders, then writing the
+result back out as snappy parquet for broad downstream compatibility.
 
 ---
 
 ## Architecture
 
-```
+```text
 Input: HF Dataset ID + config/datasets.yaml
               ↓
-  Stage 1: Fetch      — load_dataset() handles zstd, .py scripts, gated datasets
+  Stage 1: Fetch      — load_dataset(), raw-file fallback, external data fallback
               ↓
   Stage 2: Filter     — column whitelist, row sampling, null removal
               ↓
-  Stage 3: Augment    — distilabel LLM pipelines (Phase 3)
+  Stage 3: Augment    — Ollama / Anthropic-backed enrichment pipelines
               ↓
-  Stage 4: Validate   — schema, PII scan, quality checks
+  Stage 4: Validate   — schema, PII scan, JSON checks, quality gates
               ↓
   Stage 5: Deliver    — snappy parquet locally + push to HF Hub
 ```
+
+---
+
+## Works With
+
+- Any downstream ML training pipeline that consumes parquet or HuggingFace Hub
+  datasets
+- Kestra orchestration, custom Python workflows, RAG ingestion jobs, research
+  notebooks, and fine-tuning stacks such as Unsloth Studio
 
 ---
 
@@ -95,7 +108,7 @@ ols-prep status
 
 All datasets are defined in `config/datasets.yaml`.
 
-**To add a new dataset**, add an entry:
+To add a new dataset, add an entry like this:
 
 ```yaml
 - id: my-new-dataset
@@ -117,7 +130,12 @@ All datasets are defined in `config/datasets.yaml`.
   status: pending
 ```
 
+`recipe_target` is the current runtime key used by the CLI and manifests.
+Conceptually, it is the downstream fine-tuning target or output format target
+for the prepared dataset.
+
 Then run:
+
 ```bash
 ols-prep run my-new-dataset
 ```
@@ -126,9 +144,9 @@ ols-prep run my-new-dataset
 
 ## CLI Reference
 
-```
+```text
 ols-prep run [DATASET_ID]               Process one dataset
-ols-prep run --recipe RECIPE_TARGET     Process all datasets for a recipe type
+ols-prep run --recipe RECIPE_TARGET     Process all datasets for a target label
 ols-prep run --project PROJECT          Process all datasets for a project
 ols-prep run --all                      Process all pending datasets
 ols-prep run --all --force              Re-process including complete datasets
@@ -144,7 +162,7 @@ ols-prep push DATASET_ID                Push local parquet to HF Hub
 
 Processed datasets are saved as snappy-compressed parquet:
 
-```
+```text
 $OUTPUT_BASE_DIR/
 ├── 01-instruction-from-answer/
 │   ├── prosocial-dialog.parquet
@@ -155,36 +173,29 @@ $OUTPUT_BASE_DIR/
     └── moral-stories.parquet
 ```
 
-Every run updates `manifest.json` with full provenance metadata.
+Every run updates `manifest.json` with provenance metadata for reproducibility.
 
 ---
 
 ## Pipeline Examples
 
-See the `pipelines/` directory for standalone examples for each fine-tuning format:
+See the `pipelines/` directory for standalone examples for common downstream
+fine-tuning targets:
 
-| File | Format |
+| File | Target |
 |------|--------|
 | `pipelines/instruction_from_answer.py` | Instruction from Answer |
-| `pipelines/structured_output.py`       | Structured Outputs (Jinja) |
+| `pipelines/structured_output.py`       | Structured Outputs |
 | `pipelines/text_to_sql.py`             | Text to SQL |
 | `pipelines/text_to_python.py`          | Text to Python |
-
----
-
-## Compatible With
-
-Outputs clean snappy-compressed parquet compatible with any fine-tuning tool or
-training pipeline, including Unsloth Studio, Axolotl, LLaMA-Factory, and
-custom training scripts.
 
 ---
 
 ## Roadmap
 
 - **Phase 1** (current) — fetch, filter, validate, deliver, CLI
-- **Phase 2** — compatibility test suite for all 6 registered datasets
-- **Phase 3** — distilabel augmentation (Ollama + Anthropic Claude backends)
+- **Phase 2** — compatibility test suite for registered datasets
+- **Phase 3** — distilabel augmentation (Ollama + Anthropic backends)
 - **Phase 4** — Kestra scheduling + Langfuse observability
 
 ---

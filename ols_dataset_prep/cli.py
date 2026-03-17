@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 app = typer.Typer(
     name="ols-prep",
-    help="OLS Dataset Preparation Pipeline — HuggingFace to Unsloth Studio",
+    help="OLS Dataset Preparation Pipeline — universal HuggingFace dataset prep for fine-tuning workflows",
     no_args_is_help=True,
 )
 console = Console()
@@ -133,14 +133,16 @@ def _run_pipeline(cfg: dict, force: bool = False, preview: bool = False) -> bool
             _show_preview(dataset, dataset_id)
             return True
 
-        # ── Stage 3: Augment (stub in Phase 1) ────────────────────────
+        # ── Stage 3: Augment ───────────────────────────────────────────
+        aug_type = cfg.get("augmentation", "none")
+        aug_label = aug_type if aug_type and aug_type != "none" else "none (pass-through)"
         task = progress.add_task("[cyan]Stage 3/5  Augmenting...", total=None)
         dataset = augment_dataset(
             dataset=dataset,
-            augmentation_type=cfg.get("augmentation", "none"),
+            augmentation_type=aug_type,
             augmentation_llm=cfg.get("augmentation_llm"),
         )
-        progress.update(task, description="[green]Stage 3/5  Augmented (stub)", completed=1, total=1)
+        progress.update(task, description=f"[green]Stage 3/5  Augmented ({aug_label})", completed=1, total=1)
 
         # ── Stage 4: Validate ──────────────────────────────────────────
         task = progress.add_task("[cyan]Stage 4/5  Validating...", total=None)
@@ -228,7 +230,7 @@ def _show_preview(dataset, dataset_id: str) -> None:
 @app.command()
 def run(
     dataset_id: Optional[str] = typer.Argument(None, help="Dataset ID from datasets.yaml"),
-    recipe: Optional[str] = typer.Option(None, "--recipe", help="Process all datasets for this recipe_target"),
+    recipe: Optional[str] = typer.Option(None, "--recipe", help="Process all datasets for this downstream target label"),
     project: Optional[str] = typer.Option(None, "--project", help="Process all datasets for this OLS project"),
     all_datasets: bool = typer.Option(False, "--all", help="Process all pending datasets"),
     force: bool = typer.Option(False, "--force", help="Re-process even if already complete"),
@@ -246,7 +248,7 @@ def run(
     elif recipe:
         targets = [d for d in registry if d.get("recipe_target") == recipe]
         if not targets:
-            console.print(f"[red]No datasets found for recipe_target '{recipe}'[/red]")
+            console.print(f"[red]No datasets found for target label '{recipe}'[/red]")
             raise typer.Exit(1)
 
     elif project:
@@ -300,7 +302,7 @@ def status():
     table.add_column("ID", style="bold")
     table.add_column("Status")
     table.add_column("Project")
-    table.add_column("Recipe")
+    table.add_column("Target")
     table.add_column("Rows Out")
     table.add_column("Processed At")
     table.add_column("Known Issues")

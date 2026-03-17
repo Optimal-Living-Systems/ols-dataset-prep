@@ -1,14 +1,13 @@
 # OLS Dataset Registry
-# Each entry defines a dataset the pipeline knows how to process.
+# Each entry defines a dataset preparation job the pipeline knows how to process.
 # Replace the output_name prefixes with your HuggingFace username before running.
 # status: pending | ready | failed | complete
-#
-# recipe_target: output format / fine-tuning recipe type
-#   Values: instruction_from_answer | structured_outputs_jinja | text_to_sql | text_to_python
+# recipe_target is the current runtime key used by the CLI and manifest.
+# Semantically, treat it as the downstream fine-tuning target / output format target.
 
 datasets:
 
-  # ── FORMAT: Instruction from Answer ───────────────────────────────────────
+  # ── TARGET: Instruction from Answer ───────────────────────────────────────
   - id: prosocial-dialog
     hf_repo: allenai/prosocial-dialog
     known_issues:
@@ -77,7 +76,7 @@ datasets:
     status: ready
     notes: "MMLU sociology subset. Confirmed plain parquet. No compatibility issues. Good first test."
 
-  # ── FORMAT: Structured Outputs ────────────────────────────────────────────
+  # ── TARGET: Structured Outputs ────────────────────────────────────────────
   - id: moral-stories
     hf_repo: demelin/moral_stories
     known_issues:
@@ -103,7 +102,7 @@ datasets:
     status: pending
     notes: "Moral scenarios dataset for structured output training. Legacy script fix required."
 
-  # ── FORMAT: Text to SQL ───────────────────────────────────────────────────
+  # ── TARGET: Text to SQL ───────────────────────────────────────────────────
   - id: sql-create-context
     hf_repo: b-mc2/sql-create-context
     known_issues: []
@@ -124,7 +123,7 @@ datasets:
     status: pending
     notes: "SQL question/context/answer dataset. Plain parquet, no known issues."
 
-  # ── FORMAT: Text to Python ────────────────────────────────────────────────
+  # ── TARGET: Text to Python ────────────────────────────────────────────────
   - id: python-code-instructions
     hf_repo: iamtarun/python_code_instructions_18k_alpaca
     known_issues: []

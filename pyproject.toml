@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ols-dataset-prep"
 version = "0.1.0"
-description = "OLS Dataset Preparation Pipeline — universal HuggingFace dataset prep for ML fine-tuning"
+description = "OLS Dataset Preparation Pipeline — universal HuggingFace dataset prep for fine-tuning workflows"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"

@@ -4,7 +4,7 @@ Stage 1 — Fetch
 Universal HuggingFace dataset loader. Handles every format the pipeline
 encounters without requiring the caller to know what format they're dealing with:
   - Standard parquet (no issues)
-  - zstd-compressed parquet (HF's new default — Unsloth can't read directly)
+  - zstd-compressed parquet (HF's new default — not all downstream tools read it directly)
   - Legacy .py loading scripts — fallback: discover and load raw data files directly
   - Multi-config datasets (subset parameter)
   - Gated/private datasets (HF_TOKEN)
