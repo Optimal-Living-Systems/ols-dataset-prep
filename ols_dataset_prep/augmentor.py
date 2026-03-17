@@ -253,7 +253,7 @@ def structured_output(
     for raw in raw_outputs:
         try:
             clean = raw.strip().lstrip("```json").lstrip("```").rstrip("```").strip()
-            json.loads(clean)   # validate parseable
+            json.loads(clean)
             structured.append(clean)
         except (json.JSONDecodeError, AttributeError, TypeError):
             logger.warning("Failed to validate JSON output: %r", raw[:120])
