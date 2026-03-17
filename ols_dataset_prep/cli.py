@@ -70,7 +70,12 @@ def _find_dataset(dataset_id: str, registry: list[dict]) -> Optional[dict]:
     return next((d for d in registry if d["id"] == dataset_id), None)
 
 
-def _run_pipeline(cfg: dict, force: bool = False, preview: bool = False) -> bool:
+def _run_pipeline(
+    cfg: dict,
+    force: bool = False,
+    preview: bool = False,
+    augment: bool = True,
+) -> bool:
     """
     Run the full pipeline for a single dataset config.
 
@@ -134,13 +139,13 @@ def _run_pipeline(cfg: dict, force: bool = False, preview: bool = False) -> bool
             return True
 
         # ── Stage 3: Augment ───────────────────────────────────────────
-        aug_type = cfg.get("augmentation", "none")
+        aug_type = cfg.get("augmentation", "none") if augment else "none"
         aug_label = aug_type if aug_type and aug_type != "none" else "none (pass-through)"
         task = progress.add_task("[cyan]Stage 3/5  Augmenting...", total=None)
         dataset = augment_dataset(
             dataset=dataset,
             augmentation_type=aug_type,
-            augmentation_llm=cfg.get("augmentation_llm"),
+            augmentation_llm=cfg.get("augmentation_llm") if augment else None,
         )
         progress.update(task, description=f"[green]Stage 3/5  Augmented ({aug_label})", completed=1, total=1)
 
@@ -234,6 +239,7 @@ def run(
     project: Optional[str] = typer.Option(None, "--project", help="Process all datasets for this OLS project"),
     all_datasets: bool = typer.Option(False, "--all", help="Process all pending datasets"),
     force: bool = typer.Option(False, "--force", help="Re-process even if already complete"),
+    augment: bool = typer.Option(True, "--augment/--no-augment", help="Enable or skip Stage 3 augmentation"),
 ):
     """Process one or more datasets through the full pipeline."""
     registry = _load_registry()
@@ -267,7 +273,7 @@ def run(
 
     results = {"success": [], "failed": []}
     for cfg in targets:
-        ok = _run_pipeline(cfg, force=force)
+        ok = _run_pipeline(cfg, force=force, augment=augment)
         (results["success"] if ok else results["failed"]).append(cfg["id"])
 
     # Summary

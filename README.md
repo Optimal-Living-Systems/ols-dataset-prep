@@ -150,11 +150,41 @@ ols-prep run --recipe RECIPE_TARGET     Process all datasets for a target label
 ols-prep run --project PROJECT          Process all datasets for a project
 ols-prep run --all                      Process all pending datasets
 ols-prep run --all --force              Re-process including complete datasets
+ols-prep run --all --no-augment         Skip Stage 3 augmentation
 ols-prep status                         Show status table
 ols-prep preview DATASET_ID             Fetch + filter, show 3 rows, no save
 ols-prep validate DATASET_ID            Re-validate a processed dataset
 ols-prep push DATASET_ID                Push local parquet to HF Hub
 ```
+
+---
+
+## Kestra Orchestration
+
+Import the production flow into your local Kestra instance with:
+
+```bash
+kestra flow update ./kestra/ols-dataset-prep-flow.yml ols.data ols-dataset-prep --server http://localhost:8080
+```
+
+Flow shape:
+
+```text
+Schedule / Webhook / New YAML file
+                ↓
+         health_check
+                ↓
+         run_pipeline
+                ↓
+         read_manifest
+                ↓
+         notify_success
+
+On failure after retry exhaustion:
+         notify_failure
+```
+
+See [`kestra/README.md`](kestra/README.md) for setup, secrets, manual triggers, and dataset onboarding instructions.
 
 ---
 

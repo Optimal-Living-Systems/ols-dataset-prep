@@ -1,53 +1,124 @@
 id: ols-dataset-prep
 namespace: ols.data
-description: |
-  OLS Dataset Preparation Pipeline — production orchestration for the OLS AI Lab data stack
-  Fetches HuggingFace datasets, converts to snappy parquet,
-  optionally augments with LLMs, and delivers clean datasets for downstream fine-tuning workflows.
-  Runs all pending datasets unless a specific dataset_id is provided.
+description: "OLS AI Lab — Dataset Preparation Pipeline"
 
 inputs:
   - id: dataset_id
     type: STRING
     required: false
-    description: "Specific dataset ID to process (from config/datasets.yaml). Leave empty to run all pending."
+    description: "Run a single dataset by ID from config/datasets.yaml."
+  - id: force
+    type: BOOL
+    defaults: false
+    description: "Re-process datasets that are already marked complete."
+  - id: augment
+    type: BOOL
+    defaults: true
+    description: "Enable Stage 3 augmentation during the pipeline run."
+
+outputs:
+  - id: manifest_json
+    type: STRING
+    value: "{{ outputs.read_manifest.vars.manifest_json }}"
 
 triggers:
   - id: weekly_schedule
     type: io.kestra.plugin.core.trigger.Schedule
-    cron: "0 6 * * 1"   # Every Monday at 6am
+    cron: "0 6 * * 1"
+    allowConcurrent: false
+
+  - id: manual_webhook
+    type: io.kestra.plugin.core.trigger.Webhook
+    key: "{{ secret('OLS_DATASET_PREP_WEBHOOK_KEY') }}"
+    allowConcurrent: false
+
+  - id: dataset_file_watch
+    type: io.kestra.plugin.fs.local.Trigger
+    from: /home/joel/ols-pipeline/new-datasets/
+    regExp: ".*\\.ya?ml$"
+    interval: PT1M
+    on: CREATE
+    action: NONE
+    allowConcurrent: false
 
 tasks:
+  - id: health_check
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    interpreter:
+      - /bin/bash
+      - -lc
+    retry:
+      type: constant
+      interval: PT5M
+      maxAttempts: 2
+    commands:
+      - cd /home/joel/work/ols-dataset-prep && source .venv/bin/activate && ols-prep --version
+
   - id: run_pipeline
     type: io.kestra.plugin.scripts.python.Commands
-    namespaceFiles:
-      enabled: true
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    interpreter:
+      - /bin/bash
+      - -lc
+    retry:
+      type: constant
+      interval: PT5M
+      maxAttempts: 2
+    beforeCommands:
+      - cd /home/joel/work/ols-dataset-prep
+      - source .venv/bin/activate
     commands:
       - >
-        {% if inputs.dataset_id %}
-        ols-prep run {{ inputs.dataset_id }}
-        {% else %}
-        ols-prep run --all
-        {% endif %}
+        if [ -n "{{ inputs.dataset_id ?? '' }}" ]; then
+          CMD="ols-prep run {{ inputs.dataset_id }}";
+        else
+          CMD="ols-prep run --all";
+        fi;
+        if [ "{{ inputs.force }}" = "true" ]; then
+          CMD="$CMD --force";
+        fi;
+        if [ "{{ inputs.augment }}" = "false" ]; then
+          CMD="$CMD --no-augment";
+        fi;
+        echo "$CMD";
+        eval "$CMD"
     env:
       HF_TOKEN: "{{ secret('HF_TOKEN') }}"
       ANTHROPIC_API_KEY: "{{ secret('ANTHROPIC_API_KEY') }}"
-      OLLAMA_BASE_URL: "{{ secret('OLLAMA_BASE_URL') }}"
-      OUTPUT_BASE_DIR: "{{ secret('OUTPUT_BASE_DIR') }}"
+      OLLAMA_BASE_URL: "http://localhost:11434"
+      OLLAMA_MODEL: "llama3.2"
+      OUTPUT_BASE_DIR: "/home/joel/ols-pipeline/unsloth-datasets"
 
-  - id: notify_completion
-    type: io.kestra.plugin.notifications.slack.SlackIncomingWebhook
-    url: "{{ secret('SLACK_WEBHOOK') }}"
-    payload: |
-      {
-        "text": "✅ OLS Dataset Prep complete.\nDataset: {{ inputs.dataset_id | default('all pending') }}\nCheck manifest.json for full results."
-      }
+  - id: read_manifest
+    type: io.kestra.plugin.scripts.shell.Commands
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    retry:
+      type: constant
+      interval: PT5M
+      maxAttempts: 2
+    commands:
+      - cat /home/joel/work/ols-dataset-prep/manifest.json
+      - >
+        /home/joel/work/ols-dataset-prep/.venv/bin/python -c
+        "import json, pathlib;
+        print('::' + json.dumps({
+        'outputs': {
+        'manifest_json': pathlib.Path('/home/joel/work/ols-dataset-prep/manifest.json').read_text()
+        }}) + '::')"
+
+  - id: notify_success
+    type: io.kestra.plugin.core.log.Log
+    retry:
+      type: constant
+      interval: PT5M
+      maxAttempts: 2
+    message: "Dataset prep complete. Check manifest.json for results."
 
 errors:
   - id: notify_failure
-    type: io.kestra.plugin.notifications.slack.SlackIncomingWebhook
-    url: "{{ secret('SLACK_WEBHOOK') }}"
-    payload: |
-      {
-        "text": "❌ OLS Dataset Prep FAILED.\nDataset: {{ inputs.dataset_id | default('all') }}\nCheck Kestra logs for details."
-      }
+    type: io.kestra.plugin.core.log.Log
+    message: "Dataset prep failed after retry exhaustion. Flow={{ flow.namespace }}.{{ flow.id }} Execution={{ execution.id }} FailedTask={{ task.id }} Attempt={{ taskrun.attemptsCount }}"
