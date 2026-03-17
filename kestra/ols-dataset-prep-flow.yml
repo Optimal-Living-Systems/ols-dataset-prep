@@ -1,0 +1,53 @@
+id: ols-dataset-prep
+namespace: ols.data
+description: |
+  OLS Dataset Preparation Pipeline
+  Fetches HuggingFace datasets, converts to snappy parquet,
+  optionally augments with LLMs, and delivers to HF Hub.
+  Runs all pending datasets unless a specific dataset_id is provided.
+
+inputs:
+  - id: dataset_id
+    type: STRING
+    required: false
+    description: "Specific dataset ID to process (from config/datasets.yaml). Leave empty to run all pending."
+
+triggers:
+  - id: weekly_schedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 6 * * 1"   # Every Monday at 6am
+
+tasks:
+  - id: run_pipeline
+    type: io.kestra.plugin.scripts.python.Commands
+    namespaceFiles:
+      enabled: true
+    commands:
+      - >
+        {% if inputs.dataset_id %}
+        ols-prep run {{ inputs.dataset_id }}
+        {% else %}
+        ols-prep run --all
+        {% endif %}
+    env:
+      HF_TOKEN: "{{ secret('HF_TOKEN') }}"
+      ANTHROPIC_API_KEY: "{{ secret('ANTHROPIC_API_KEY') }}"
+      OLLAMA_BASE_URL: "{{ secret('OLLAMA_BASE_URL') }}"
+      OUTPUT_BASE_DIR: "{{ secret('OUTPUT_BASE_DIR') }}"
+
+  - id: notify_completion
+    type: io.kestra.plugin.notifications.slack.SlackIncomingWebhook
+    url: "{{ secret('SLACK_WEBHOOK') }}"
+    payload: |
+      {
+        "text": "✅ OLS Dataset Prep complete.\nDataset: {{ inputs.dataset_id | default('all pending') }}\nCheck manifest.json for full results."
+      }
+
+errors:
+  - id: notify_failure
+    type: io.kestra.plugin.notifications.slack.SlackIncomingWebhook
+    url: "{{ secret('SLACK_WEBHOOK') }}"
+    payload: |
+      {
+        "text": "❌ OLS Dataset Prep FAILED.\nDataset: {{ inputs.dataset_id | default('all') }}\nCheck Kestra logs for details."
+      }

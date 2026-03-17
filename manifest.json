@@ -1,0 +1,99 @@
+{
+  "mmlu-sociology": {
+    "hf_repo": "tasksource/mmlu",
+    "output_name": "Not-qty/ols-mmlu-sociology",
+    "local_path": "/home/joel/ols-pipeline/unsloth-datasets/01-instruction-from-answer/mmlu-sociology.parquet",
+    "hf_url": "https://huggingface.co/datasets/Not-qty/ols-mmlu-sociology",
+    "rows_in": 201,
+    "rows_out": 201,
+    "augmentation": "text_generation",
+    "augmentation_llm": "anthropic",
+    "validation_passed": true,
+    "processed_at": "2026-03-16T23:48:31.510756+00:00",
+    "recipe_target": "instruction_from_answer",
+    "ols_project": "my-project",
+    "known_issues_resolved": []
+  },
+  "prosocial-dialog": {
+    "hf_repo": "allenai/prosocial-dialog",
+    "output_name": "Not-qty/ols-prosocial-dialog-2k",
+    "local_path": "/home/joel/ols-pipeline/unsloth-datasets/01-instruction-from-answer/prosocial-dialog.parquet",
+    "hf_url": "https://huggingface.co/datasets/Not-qty/ols-prosocial-dialog-2k",
+    "rows_in": 2000,
+    "rows_out": 2000,
+    "augmentation": "instruction_from_answer",
+    "augmentation_llm": "ollama",
+    "validation_passed": true,
+    "processed_at": "2026-03-17T00:00:42.366191+00:00",
+    "recipe_target": "instruction_from_answer",
+    "ols_project": "my-project",
+    "known_issues_resolved": [
+      "zstd_compression"
+    ]
+  },
+  "moral-stories": {
+    "hf_repo": "demelin/moral_stories",
+    "output_name": "Not-qty/ols-moral-stories-2k",
+    "local_path": "/home/joel/ols-pipeline/unsloth-datasets/06-structured-outputs/moral-stories.parquet",
+    "hf_url": "https://huggingface.co/datasets/Not-qty/ols-moral-stories-2k",
+    "rows_in": 2000,
+    "rows_out": 2000,
+    "augmentation": "structured_output",
+    "augmentation_llm": "anthropic",
+    "validation_passed": true,
+    "processed_at": "2026-03-17T00:03:40.757483+00:00",
+    "recipe_target": "structured_outputs_jinja",
+    "ols_project": "my-project",
+    "known_issues_resolved": [
+      "legacy_script"
+    ]
+  },
+  "sql-create-context": {
+    "hf_repo": "b-mc2/sql-create-context",
+    "output_name": "Not-qty/ols-sql-context-2k",
+    "local_path": "/home/joel/ols-pipeline/unsloth-datasets/05-text-to-sql/sql-create-context.parquet",
+    "hf_url": "https://huggingface.co/datasets/Not-qty/ols-sql-context-2k",
+    "rows_in": 2000,
+    "rows_out": 2000,
+    "augmentation": "none",
+    "augmentation_llm": null,
+    "validation_passed": true,
+    "processed_at": "2026-03-17T00:06:01.226292+00:00",
+    "recipe_target": "text_to_sql",
+    "ols_project": "my-project",
+    "known_issues_resolved": []
+  },
+  "python-code-instructions": {
+    "hf_repo": "iamtarun/python_code_instructions_18k_alpaca",
+    "output_name": "Not-qty/ols-python-code-2k",
+    "local_path": "/home/joel/ols-pipeline/unsloth-datasets/04-text-to-python/python-code-instructions.parquet",
+    "hf_url": "https://huggingface.co/datasets/Not-qty/ols-python-code-2k",
+    "rows_in": 2000,
+    "rows_out": 2000,
+    "augmentation": "none",
+    "augmentation_llm": null,
+    "validation_passed": true,
+    "processed_at": "2026-03-17T00:07:02.883411+00:00",
+    "recipe_target": "text_to_python",
+    "ols_project": "my-project",
+    "known_issues_resolved": []
+  },
+  "social-bias-frames": {
+    "hf_repo": "allenai/social_bias_frames",
+    "output_name": "Not-qty/ols-social-bias-frames-2k",
+    "local_path": "/home/joel/ols-pipeline/unsloth-datasets/01-instruction-from-answer/social-bias-frames.parquet",
+    "hf_url": "https://huggingface.co/datasets/Not-qty/ols-social-bias-frames-2k",
+    "rows_in": 2953,
+    "rows_out": 2953,
+    "augmentation": "instruction_from_answer",
+    "augmentation_llm": "ollama",
+    "validation_passed": true,
+    "processed_at": "2026-03-17T00:12:00.749523+00:00",
+    "recipe_target": "instruction_from_answer",
+    "ols_project": "my-project",
+    "known_issues_resolved": [
+      "legacy_script",
+      "no_repo_data_files"
+    ]
+  }
+}

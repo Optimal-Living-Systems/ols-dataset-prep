@@ -1,0 +1,41 @@
+# Environment
+.env
+.env.local
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Data files — never commit raw or processed datasets
+data/
+*.parquet
+*.arrow
+*.csv
+*.jsonl
+
+# HuggingFace cache
+~/.cache/huggingface/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/

@@ -1,0 +1,142 @@
+# OLS Dataset Registry
+# Each entry defines a dataset the pipeline knows how to process.
+# Replace the output_name prefixes with your HuggingFace username before running.
+# status: pending | ready | failed | complete
+
+datasets:
+
+  # ── RECIPE 1: Instruction from Answer ─────────────────────────────────────
+  - id: prosocial-dialog
+    hf_repo: allenai/prosocial-dialog
+    known_issues:
+      - zstd_compression
+    split: train
+    subset: null
+    rows: 2000
+    random_seed: 42
+    columns_keep:
+      - context
+      - response
+      - rots
+      - safety_label
+    augmentation: instruction_from_answer
+    augmentation_llm: ollama
+    output_name: Not-qty/ols-prosocial-dialog-2k
+    local_subdir: 01-instruction-from-answer
+    recipe_target: instruction_from_answer
+    ols_project: my-project
+    status: pending
+    notes: "Prosocial dialog dataset. Known zstd compression — handled by load_dataset()."
+
+  - id: social-bias-frames
+    hf_repo: allenai/social_bias_frames
+    known_issues:
+      - legacy_script
+      - no_repo_data_files
+    split: train
+    subset: null
+    rows: 8000          # fetch this many rows to survive heavy NaN filtering
+    min_rows_output: 1600  # validation threshold (80% of 2000 actual target)
+    random_seed: 42
+    columns_keep:
+      - post
+      - targetMinority
+      - targetStereotype
+      - offensiveYN
+    data_url: https://maartensap.com/social-bias-frames/SBIC.v2.tgz
+    data_url_file: SBIC.v2.trn.csv
+    augmentation: instruction_from_answer
+    augmentation_llm: ollama
+    output_name: Not-qty/ols-social-bias-frames-2k
+    local_subdir: 01-instruction-from-answer
+    recipe_target: instruction_from_answer
+    ols_project: my-project
+    status: pending
+    notes: "Social bias framing dataset. Script-only HF repo — loads from external tgz."
+
+  - id: mmlu-sociology
+    hf_repo: tasksource/mmlu
+    known_issues: []
+    split: test
+    subset: sociology
+    rows: 228
+    random_seed: 42
+    columns_keep:
+      - question
+      - choices
+      - answer
+    augmentation: text_generation
+    augmentation_llm: anthropic
+    output_name: Not-qty/ols-mmlu-sociology
+    local_subdir: 01-instruction-from-answer
+    recipe_target: instruction_from_answer
+    ols_project: my-project
+    status: ready
+    notes: "MMLU sociology subset. Confirmed plain parquet. No compatibility issues. Good first test."
+
+  # ── RECIPE 6: Structured Outputs ──────────────────────────────────────────
+  - id: moral-stories
+    hf_repo: demelin/moral_stories
+    known_issues:
+      - legacy_script
+    split: train
+    subset: null
+    rows: 2000
+    random_seed: 42
+    columns_keep:
+      - norm
+      - situation
+      - intention
+      - moral_action
+      - immoral_action
+      - moral_consequence
+      - immoral_consequence
+    augmentation: structured_output
+    augmentation_llm: anthropic
+    output_name: Not-qty/ols-moral-stories-2k
+    local_subdir: 06-structured-outputs
+    recipe_target: structured_outputs_jinja
+    ols_project: my-project
+    status: pending
+    notes: "Moral scenarios dataset for structured output training. Legacy script fix required."
+
+  # ── RECIPE 5: Text to SQL ─────────────────────────────────────────────────
+  - id: sql-create-context
+    hf_repo: b-mc2/sql-create-context
+    known_issues: []
+    split: train
+    subset: null
+    rows: 2000
+    random_seed: 42
+    columns_keep:
+      - question
+      - context
+      - answer
+    augmentation: none
+    augmentation_llm: null
+    output_name: Not-qty/ols-sql-context-2k
+    local_subdir: 05-text-to-sql
+    recipe_target: text_to_sql
+    ols_project: my-project
+    status: pending
+    notes: "SQL question/context/answer dataset. Plain parquet, no known issues."
+
+  # ── RECIPE 4: Text to Python ──────────────────────────────────────────────
+  - id: python-code-instructions
+    hf_repo: iamtarun/python_code_instructions_18k_alpaca
+    known_issues: []
+    split: train
+    subset: null
+    rows: 2000
+    random_seed: 42
+    columns_keep:
+      - instruction
+      - output
+    augmentation: none
+    augmentation_llm: null
+    output_name: Not-qty/ols-python-code-2k
+    local_subdir: 04-text-to-python
+    recipe_target: text_to_python
+    ols_project: my-project
+    status: pending
+    notes: "Python code instruction dataset. Plain parquet, no known issues."
