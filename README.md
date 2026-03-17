@@ -1,26 +1,28 @@
 # ols-dataset-prep
 
-**HuggingFace → Unsloth Studio dataset preparation pipeline.**
+A production-grade dataset preparation pipeline for ML fine-tuning.
 
-Fetches any HuggingFace dataset, converts it to snappy-compressed parquet,
-optionally augments it with LLMs, validates quality, and delivers it
-to local disk and/or HuggingFace Hub — ready for use in Unsloth Studio
-with zero compatibility errors.
+Fetches any HuggingFace dataset, resolves common compatibility issues automatically,
+augments with LLMs, validates quality, and delivers clean snappy-compressed parquet
+ready for any fine-tuning workflow.
+
+Built for orchestration with Kestra. Works standalone from the command line.
 
 ---
 
 ## Why This Exists
 
-Unsloth Studio's Recipe builder cannot load many HuggingFace datasets due to two blockers:
+Many HuggingFace datasets cannot be loaded directly by fine-tuning tools due to two
+common compatibility issues that affect the entire ecosystem:
 
-**Blocker 1 — zstd compression**
-HuggingFace is adopting zstd as its default compression format. Unsloth's seed
-block inspector reads files directly and cannot handle it.
+**Issue 1 — zstd compression**
+HuggingFace is adopting zstd as its default compression format. Many tools read
+parquet files directly and cannot handle it.
 ```
 Error: "seed inspect failed: Compression type zstd not supported"
 ```
 
-**Blocker 2 — Legacy `.py` loading scripts**
+**Issue 2 — Legacy `.py` loading scripts**
 `datasets >= 4.5.0` deprecated Python loading scripts. Datasets that still ship
 one throw:
 ```
@@ -28,8 +30,8 @@ Error: "Dataset scripts are no longer supported, but found [name].py"
 ```
 
 This pipeline solves both by routing every dataset through `load_dataset()`,
-which handles both transparently, then saves as snappy parquet — the one
-compression format Unsloth can always read.
+which handles both transparently, then saves as snappy parquet — compatible
+with any ML training pipeline.
 
 ---
 
@@ -38,7 +40,7 @@ compression format Unsloth can always read.
 ```
 Input: HF Dataset ID + config/datasets.yaml
               ↓
-  Stage 1: Fetch      — load_dataset() handles zstd, .py scripts, gated
+  Stage 1: Fetch      — load_dataset() handles zstd, .py scripts, gated datasets
               ↓
   Stage 2: Filter     — column whitelist, row sampling, null removal
               ↓
@@ -110,7 +112,7 @@ All datasets are defined in `config/datasets.yaml`.
   augmentation_llm: null    # ollama | anthropic | litellm
   output_name: your-hf-username/my-output-dataset
   local_subdir: 01-instruction-from-answer
-  recipe_target: instruction_from_answer
+  recipe_target: instruction_from_answer   # output format / fine-tuning recipe type
   ols_project: my-project
   status: pending
 ```
@@ -126,7 +128,7 @@ ols-prep run my-new-dataset
 
 ```
 ols-prep run [DATASET_ID]               Process one dataset
-ols-prep run --recipe RECIPE_TARGET     Process all datasets for a recipe
+ols-prep run --recipe RECIPE_TARGET     Process all datasets for a recipe type
 ols-prep run --project PROJECT          Process all datasets for a project
 ols-prep run --all                      Process all pending datasets
 ols-prep run --all --force              Re-process including complete datasets
@@ -159,14 +161,22 @@ Every run updates `manifest.json` with full provenance metadata.
 
 ## Pipeline Examples
 
-See the `pipelines/` directory for standalone examples for each Unsloth recipe type:
+See the `pipelines/` directory for standalone examples for each fine-tuning format:
 
-| File | Recipe |
+| File | Format |
 |------|--------|
-| `pipelines/instruction_from_answer.py` | Recipe 1 — Instruction from Answer |
-| `pipelines/structured_output.py`       | Recipe 6 — Structured Outputs (Jinja) |
-| `pipelines/text_to_sql.py`             | Recipe 5 — Text to SQL |
-| `pipelines/text_to_python.py`          | Recipe 4 — Text to Python |
+| `pipelines/instruction_from_answer.py` | Instruction from Answer |
+| `pipelines/structured_output.py`       | Structured Outputs (Jinja) |
+| `pipelines/text_to_sql.py`             | Text to SQL |
+| `pipelines/text_to_python.py`          | Text to Python |
+
+---
+
+## Compatible With
+
+Outputs clean snappy-compressed parquet compatible with any fine-tuning tool or
+training pipeline, including Unsloth Studio, Axolotl, LLaMA-Factory, and
+custom training scripts.
 
 ---
 

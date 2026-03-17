@@ -10,7 +10,7 @@ After Phase 3, `ols-prep run prosocial-dialog` will:
 1. Fetch 2000 rows of prosocial dialog responses
 2. Send each response to an Ollama-hosted LLM with the instruction prompt
 3. Write the generated instruction back as a new `instruction` column
-4. Deliver a dataset with `(instruction, response)` pairs ready for Unsloth
+4. Deliver a dataset with `(instruction, response)` pairs ready for fine-tuning
 
 ## Datasets That Get Augmented
 
